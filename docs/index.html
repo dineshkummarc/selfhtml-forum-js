@@ -1,0 +1,238 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="de" xml:lang="de">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>JavaScript-Erweiterung für das SELFHTML-Forum</title>
+<style type="text/css">
+body {
+	font-family:"Frutiger Linotype","Tahoma","Geneva","Franklin Gothic Medium","Franklin Gothic Book",verdana,sans-serif;
+	line-height:1.6;
+}
+p {
+	max-width:45em;
+}
+p.screenshot {
+	max-width:none;
+}
+img {
+	border:1px solid black;
+}
+code, pre {
+	font-size:inherit;
+	font-family:"Consolas","Bitstream Vera Sans Mono","Courier New",sans-serif;
+}
+</style>
+</head>
+<body>
+
+<h1>JavaScript-Erweiterung für das SELFHTML-Forum</h1>
+
+<h2>Einleitung</h2>
+
+<p>Das im Folgenden beschriebene <a href="../forum.js">Script</a> fügt der benutzerspezifischen Ansicht (»my«) des SELFHTML-Forums einige nützliche clientseitige Funktionen hinzu. Darüber hinaus soll es ein ausbaubares Framework für weitere Funktionen darstellen.</p>
+
+<p>Viele Ideen für stammen von Zapps Script <a href="http://zapp.i-networx.de">Neue Funktionen für das SELFHTML-Forum</a>. Vielen Dank an ihn!</p>
+
+<h2>Browser-Voraussetzungen</h2>
+
+<p>Der Einfachheit halber wurden aktuelle JavaScript-Techniken verwendet:</p>
+
+<ul>
+<li>DOM 2 Events inkl. Capturing</li>
+<li>DOM 3 XPath</li>
+<li>Der Event DOMContentLoaded</li>
+<li>Prototypische Erweiterung von Kern-Objekten und DOM-Interfaces</li>
+</ul>
+
+<p>Diese Techniken werden von allen zeitgemäßen JavaScript-Interpretern unterstützt. Das Script funktioniert daher in Gecko-, Webkit- oder Opera-basierten Browsern. Der Internet Explorer unterstützt keine der oben genannten Techniken. Es macht keinen Spaß und keinen Sinn, für all diese Techniken IE-Workarounds zu schreiben. Daher wird der IE nicht unterstützt. Auf diese Weise konnte das Script sehr geradlinig und performant entwickelt werden.</p>
+
+<h2>Einbindung</h2>
+
+<p>Das Script besteht aus einer JavaScript-Datei sowie einem Stylesheet, in dem alle Regeln zur Darstellung ausgelagert sind. Script und Stylesheet müssen in den Benutzer-Einstellungen unter <a href="http://forum.de.selfhtml.org/cgi-bin/user/fo_userconf#experten">Experten-Optionen</a> eingebunden werden. Dazu werden die URIs wie folgt eingetragen:</p>
+
+<pre>
+* CSS
+  > Eigenes Stylesheet
+    > <strong>http://forum.de.selfhtml.org/js/javascript.css</strong>
+      > [X] Ergänzt das Standard-Stylesheet
+
+* Javascript
+  > Eigene JS-Datei
+    > <strong>http://forum.de.selfhtml.org/js/forum.js</strong>
+</pre>
+
+<p>Damit das Scripts vollständig funktioniert, sind zudem folgende Einstellungen nötig:</p>
+
+<pre>
+* <a href="http://forum.de.selfhtml.org/cgi-bin/user/fo_userconf#threadsundpostings">Threads und Postings</a>
+  > Postings als gelesen markieren
+    > [X] Bereits besuchte Postings serverseitig als gelesen markieren
+
+* <a href="http://forum.de.selfhtml.org/cgi-bin/user/fo_userconf#hervorhebung">Hervorhebung von Postings</a>
+  > Hervorhebung eigener Postings
+    > [X] Eigene Postings hervorheben
+</pre>
+
+<p>Eine Angabe von Farben ist jeweils nicht unbedingt notwendig.</p>
+
+<h2>Anpassung des Stylesheets</h2>
+
+<p>Alle Regeln für Darstellung sind in der besagten <code>javascript.css</code> untergebracht. Sie können sich das Script kopieren, z.B. die Größen und Farben anpassen, das angepasste Script irgendwo hochladen und dann deren URI angeben. Oder sie schreiben ein Stylesheet, dass <code>javascript.css</code> mit <code>@import</code> einbindet und gewisse Regeln überschreibt. Oder Sie binden <code>javascript.css</code> wie oben beschrieben in den Benutzereinstellungen ein und geben zusätzlich ein <a href="http://forum.de.selfhtml.org/cgi-bin/user/fo_userconf#experten">Inline-CSS</a> mit überschreibenden Regeln ein (das Inline-CSS wird nach dem externen CSS eingebunden).</p>
+
+<p><code>javascript.css</code> wird bei mir (molily) in Zusammenhang mit einem allgemeinen Stylesheet für das Forum verwendet, das auf den folgenden Screenshots in Aktion zu sehen ist. Dies nimmt einige radikale Umformatierungen vor und blendet von mir nicht benötigte Elemente aus. Sie finden dieses Stylesheet unter <a href="http://forum.de.selfhtml.org/js/forum.css">http://forum.de.selfhtml.org/js/forum.css</a>, es bindet zu aller erst <code>javascript.css</code> ein.</p>
+
+<h2>Vorstellung der Funktionen</h2>
+
+
+<h3>Kontextmenü</h3>
+
+<p>Die normale Threadansicht sieht folgendermaßen aus:</p>
+
+<p class="screenshot"><img src="normale-threadansicht.png" alt="" /></p>
+
+<p>Das Script bietet nun ein Kontextmenü an zwei Stellen. Darüber sind die meisten Funktionen zugänglich. Das Kontextmenü wird aktiviert durch einen Linksklick auf einen Autornamen bzw. auf einen Themenbereich-Namen.</p>
+
+<p>Das Autoren-Kontextmenü:</p>
+
+<p class="screenshot"><img src="autormenue.png" alt="" /></p>
+
+<p>Das Themenbereich-Kontextmenü:</p>
+
+<p class="screenshot"><img src="themenbereichmenue.png" alt="" /></p>
+
+<p>Diese Kontextmenüs haben verschiedene Einträge, je nachdem, ob es sich um einen hervorgehobenen Themenbereich bzw. Autor handelt oder nicht oder ob man selbst der Autor ist. Ein Beispiel für einen hervorgehobenen Themenbereich:</p>
+
+<p class="screenshot"><img src="themenbereichmenue-hervorgehoben.png" alt="" /></p>
+
+
+<h3>Themenbereich- und Autorenfilter</h3>
+
+<p>Über entsprechende Links im Kontextmenü lässt sich die Forumshauptseite nach dem angeklickten Autoren bzw. Themenbereich filtern.</p>
+
+<p>Eine Filterung nach Autor sieht folgendermaßen aus:</p>
+
+<p class="screenshot"><img src="gefiltert-nach-autor.png" alt="" /></p>
+
+<p>Die Postings des jeweiligen gesuchten Autors werden zur Zeit gelb markiert.</p>
+
+<p>Filterung nach Themenbereich:</p>
+
+<p class="screenshot"><img src="gefiltert-nach-themenbereich.png" alt="" /></p>
+
+<p>Wie man sieht erscheint oben im Header ein Info-Bereich mit einem Link, mit der sich der Filter wieder aufheben kann. Sie können aber auch einen anderen Filter über das Kontextmenü aktivieren, die alte Filterung wird dann aufgehoben und die neue angewendet.</p>
+
+<p>Der browserseitige JavaScript-Filter kann auch über das Filter-Formular im Forumskopf bedient werden. Dieses funktioniert normalerweise ohne JavaScript. Das Script schaltet sich dort ein:</p>
+
+<p class="screenshot"><img src="themenbereichfilter-oben.png" alt="" /></p>
+
+<p>Das Absenden des Formulars führt zur Filter-Ansicht wie im vorigen Screenshot.</p>
+
+
+<h3>Autoren- und Themenbereich-Whitelist, Autoren-Blacklist</h3>
+
+<p>Über die entsprechenden Links im Kontextmenü wird eine Anfrage an den Server gesendet, sodass der angeklickte Autor bzw. Themenbereich zur Whitelist hinzugefügt wird. Nachdem die Änderung abgespeichert wurde, wird die Forumshauptseite neu geladen, sofern gewünscht.</p>
+
+<p>In den obigen Screenshots sind Autoren auf der Whitelist dunkelrot, Themenbereiche auf der Whitelist blau hervorgehoben. (Und der eigene Autornname, in den Screenshots »molily«, ist blau hervorgehoben.) Diese Farben können selbstverständlich in der Benutzereinstellungen individuell angepasst werden.</p>
+
+<p>Ein Ausblenden bestimmter Themenbereiche ist derzeit nicht möglich. Dies kann nur manuell über <a href="http://forum.de.selfhtml.org/cgi-bin/user/fo_userconf#ausblenden">Benutzereinstellungen: Ausblenden von Postings</a> bewerkstelligt werden. Das Ausblenden von Themenbereichen ist serverseitig nämlich als Whitelist gelöst. Wenn Sie eine Kategorie ausblenden wollen, müssen sie also alle anderen in der Liste »Nur Postings dieser Kategorien anzeigen« aktivieren!</p>
+
+
+<h3>Autoren- und Themenbereich-Statistik</h3>
+
+<p>Über das Kontextmenü kann eine Autoren- bzw. Themenbereich-Statistik eingeblendet werden. Diese erscheint als Layer auf der linken Seite und nimmt die Browserfenster-Höhe ein.</p>
+
+<p>Autorenstatistik:</p>
+
+<p class="screenshot"><img src="autorenstatistik.png" alt="" /></p>
+
+<p>Themenbereich-Statistik:</p>
+
+<p class="screenshot"><img src="themenbereich-statistik.png" alt="" /></p>
+
+<p>Mit einem Klick auf die Autoren- bzw. Themenbereich-Namen kann die Forumshauptseite nach diesen gefiltert werden.</p>
+
+
+<h3>Ungelesene Antworten auf eigene Beiträge anzeigen</h3>
+
+<p>Im Forumskopf werden beim Laden alle noch ungelesenen Antworten auf eigene Beiträge aufgelistet. Dieser »Followup-Notice« sieht so etwa so aus:</p>
+
+<p class="screenshot"><img src="neue-antworten.png" alt="" /></p>
+
+
+<h2>Interna, Aufbau und Konventionen</h2>
+
+
+<h3>Namensraum</h3>
+
+<p>Das Script führt einen globalen Namespace <code>SELFHTML</code> mit dem Unter-Namespace <code>SELFHTML.Forum</code> ein. Alle Funktionen sind darin gekapselt und auch neue Objekte sollten unter <code>SELFHTML.Forum</code> gespeichert werden. Bitte keine Funktionen außerhalb dieses Namensraumes, schon gar nicht direkt unter <code>window</code>.</p>
+
+<p>In den Funktionen wird der Namensraum <code>SELFHTML.Forum</code> durch eine lokale Referenz namens <code>F</code> abgekürzt, sofern mehrere Zugriffe darauf erfolgen. Dies spart Unmengen an Tipparbeit.</p>
+
+
+<h3>Module und Initialisierung</h3>
+
+<p>Das Script besteht aus Modulen, die Initialisierungsfunktionen bereitstellen. Diese werden folgenermaßen registriert:</p>
+
+<pre>
+SELFHTML.Forum.addModule("all", SELFHTML.Forum.initBeispiel); // für Hauptseite und Posting-Ansicht
+SELFHTML.Forum.addModule("hauptseite", SELFHTML.Forum.initBeispiel); // nur für Hauptseite
+SELFHTML.Forum.addModule("nachricht", SELFHTML.Forum.initBeispiel); // nur für Posting-Ansicht
+</pre>
+
+<p>Diese Initialisierungsfunktionen werden ausgeführt, wenn das Ereignis <code>DOMContentLoaded</code> passiert, d.h. der DOM-Knotenbaum für den Scriptzugriff zur Verfügung steht.</p>
+
+
+<h3>Indizes</h3>
+
+<p>Für die Filterung und die Statistik werden beim Start vier Indizes angelegt (siehe Funktion <code>F.initCache</code>):</p>
+
+<pre>
+F.postingsByAuthor = {}
+F.threadStartsByAuthor = {}
+F.ownPostings = []
+F.postingsByCategory = {};
+</pre>
+
+<p>In zwei Objects werden die Posting nach Themenbereichen und Autornamen gespeichert. Unter <code>F.postingsByAuthor["molily"]</code> findet sich dann ein Array mit allen <code>li</code>-Elementobjekten der Postings, die »molily« verfasst hat. Dasselbe gilt z.B. für <code>F.postingsByCategory["JAVASCRIPT"]</code>.</p>
+
+<p>Unter <code>F.threadStartsByAuthor</code> finden sich alle Beiträge, die einen Thread eröffnet haben, nach Autornamen sortiert. Es handelt sich ebenfalls um Arrays mit <code>li</code>-Elementobjekten. <code>F.ownPostings</code> ist schließlich ein Array mit eigenen Postings, ebenfalls in Form von <code>li</code>-Elementen.</p>
+
+
+<h3>Prototypische Erweiterungen</h3>
+
+<p>Alle Array-Objekte bekommen die <a href="http://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/forEach">JavaScript-1.6-Methode forEach</a> zum einfachen Durchlaufen der Elemente. Die Methode nimmt eine Funktion entgegen, die für jedes Element ausgeführt wird. Auf konventionelle <code>for</code>-Schleifen wird daher verzichtet zugunsten dieser funktionalen Schreibweise.</p>
+
+<p>Dasselbe gilt für Objects (Hashes). Diese werden nicht mit <code>for-in</code> durchlaufen, sondern mit der »statischen Klassenmethode« <code>Object.forEach</code>. (<code>Object.prototype</code> is verboten, deshalb ist diese Schreibweise nötig.) Diese Methode ist »sicher«, weil sie prototypisch vererbte Member überspringt. <code>for-in</code>-Schleifen kommen dadurch außerhalb dieser Helfermethode nicht vor.</p>
+
+<p>Schließlich werden Elementknoten erweitert um die Methoden <code>toggleClass</code>, <code>addClass</code>, <code>removeClass</code> und <code>hasClass</code>. Deren Sinn erklärt sich von selbst, es ist ein komfortableres Interface zur <code>className</code>-Eigenschaft. Darüber hinaus bekommt jedes Element die Methode <code>getNodesByXPath</code>, mit der sich alle Kindknoten mithilfe einer XPath-Abfrage durchsuchen lassen, und die Methode <code>contains</code>, die zurückgibt, ob ein anderes Element in dem fraglichen enthalten ist.</p>
+
+
+<h3>Layer</h3>
+
+<p>Das Ansprechen und Einfügen von Elementen sowie das Ändern ihres Inhaltes erfolgt über eine OOP-Abstraktion namens Layer. <code>F.Layer</code> ist ein Konstruktor, der z.B. so aufgerufen wird:</p>
+
+<pre>
+new SELFHTML.Forum.Layer( { id : "scriptInfo", tagName : "div", parent : document.getElementById("kopf-haupt") } ).html(html).show();
+</pre>
+
+<p>Dies erzeugt ein Element vom angegebenen Typ mit der angegebenen ID und hängt es als angegebenen Eltern-Element ins Dokument ein. Wenn schon ein Layer mit der ID angelegt wurde, gibt der Konstruktor das entsprechende Layer-Objekt zurück, anstatt ein zweites gleiches Element zu erzeugen. Der obige Befehl kann also gefahrlos mehrfach aufgerufen werden.</p>
+
+<p>Das Layer-Objekt hat die Methoden <code>show</code>, <code>hide</code> und <code>html</code>. Die ersten beiden erklären sich von selbst; mit <code>.html("string")</code> wird die <code>innerHTML</code>-Eigenschaft gesetzt. Die Methoden erlauben »Chaining«, wie man sieht, d.h. sie geben die Layer-Instanz wieder zurück.</p>
+
+<p>Will man nur ein bestehendes Element verstecken oder seinen Inhalt ändern, so ruft man ebenfalls den Konstruktor auf, allerdings nur mit einer ID:</p>
+
+<pre>
+new SELFHTML.Forum.Layer( { id : "scriptInfo" } ).hide();
+</pre>
+
+<p>Wenn das Element nicht existiert, passiert einfach gar nichts.</p>
+
+
+<h2>Feedback und Weiterentwicklung</h2>
+
+<p>Vorschläge für weitere Features, Anpassungen und Code-Ergänzungen werden gerne ins Script aufgenommen.</p>
+
+<address>molily, <a href="mailto:molily@selfhtml.org">molily@selfhtml.org</a></address>
+
+</body>
+</html>
