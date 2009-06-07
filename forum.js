@@ -1,3 +1,9 @@
+/*!
+JavaScript für die benutzerspezifische Ansicht des SELFHTML-Forums (http://forum.de.selfhtml.org/)
+Author: Mathias Schäfer
+Lizenz: MIT License
+*/
+
 /* Kodierung: UTF-8 */
 
 /* #################################################################################### */
