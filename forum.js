@@ -7,7 +7,7 @@
 /* Core-Object-Prototypen */
 
 if (!Object.forEach) {
-	Object.forEach = function (object, func) {
+	Object.forEach = function f_Object_forEach (object, func) {
 		for (var property in object) {
 			if (object.hasOwnProperty(property)) {
 				func.call(object, property, object[property]);
@@ -17,20 +17,17 @@ if (!Object.forEach) {
 }
 
 if (!Array.prototype.forEach) {
-	Array.prototype.forEach = function (fun) {
+		Array.prototype.forEach = function f_Array_prototype_forEach (func) {
+		if (typeof func != "function") throw new TypeError();
 		var len = this.length;
-		if (typeof fun != "function") throw new TypeError();
-		var thisp = arguments[1];
 		for (var i = 0; i < len; i++) {
-			if (i in this) {
-				fun.call(thisp, this[i], i, this);
-			}
+			func.call(this, this[i], i);
 		}
 	};
 }
 
 if (!Array.prototype.filter) {
-	Array.prototype.filter = function (fun) {
+	Array.prototype.filter = function f_Array_prototype_filter (fun) {
 		var len = this.length;
 		if (typeof fun != "function") throw new TypeError();
 		var res = new Array();
@@ -47,38 +44,44 @@ if (!Array.prototype.filter) {
 	};
 }
 
-/*
-String.prototype.escapeString = function () {
-	return this.replace(/(\\(u\d{4}|x\d{2}|\d{3}))/g, "\\$1").replace(/"/g, "\\u0022").replace(/'/g, "\u0027");
-};
-*/
-
-String.prototype.escapeHTML = function () {
+String.prototype.escapeHTML = function f_String_prototype_escapeHTML () {
 	return this.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&lt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 };
 
 /* DOM-Interface-Prototypen */
 
-Node.prototype.contains = function (arg) {
-	return (this.compareDocumentPosition(arg) & 16) == 16;
+if (!Element.prototype.contains) {
+	Element.prototype.contains = function f_Node_prototype_contains (arg) {
+		return (this.compareDocumentPosition(arg) & 16) == 16;
+	};
+}
+
+Element.prototype.getElementByXPath = function f_Element_prototype_getElementByXPath (xpathExpression) {
+	return document.evaluate(xpathExpression, this, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null).singleNodeValue;
 };
 
-Element.prototype.getNodesByXPath = function (xpathExpression) {
-	try {
-		var result = document.evaluate(xpathExpression, this, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
-	} catch (e) {
-		if (e.code == 51) {
-			//console.log("Invalid Expression:", xpathExpression);
-		} else {
-			//console.log("Exception: ", e.name, "-", e.message, "xpathExpression:", xpathExpression);
-		}
-		return [];
+Element.prototype.getElementsByXPath = function f_Element_prototype_getElementsByXPath (xpathExpression) {
+	return document.evaluate(xpathExpression, this, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+};
+
+XPathResult.prototype.forEach = function f_XPathResult_prototype_forEach (func) {
+	var node,
+		i = 0,
+		iterator = this.resultType == XPathResult.ORDERED_NODE_ITERATOR_TYPE ? 'iterateNext' : 'snapshotItem';
+	while (node = this[iterator](i++)) {
+		func(node);
 	}
-	var nodeArray = [], node;
-	while (node = result.iterateNext()) {
-		nodeArray.push(node);
+};
+
+XPathResult.prototype.toArray = function f_XPathResult_prototype_toArray () {
+	var arr = [],
+		node,
+		i = 0,
+		iterator = this.resultType == XPathResult.ORDERED_NODE_ITERATOR_TYPE ? 'iterateNext' : 'snapshotItem';
+	while (node = this[iterator](i++)) {
+		arr.push(node);
 	}
-	return nodeArray;
+	return arr;
 };
 
 /* Klassen */
@@ -86,35 +89,23 @@ Element.prototype.getNodesByXPath = function (xpathExpression) {
 (function () {
 	var regexpCache = {};
 	var p = Element.prototype;
-	p.toggleClass = function (className) {
+	p.toggleClass = function Element_prototype_toggleClass (className) {
 		if (this.hasClass(className)) {
 			this.removeClass(className);
 		} else {
 			this.addClass(className);
 		}
 	};
-	p.addClass = function (className) {
+	p.addClass = function Element_prototype_addClass (className) {
 		if (!this.hasClass(className)) {
-			if (this.className) {
-				this.className += " " + className;
-			} else {
-				this.className = className;
-			}
+			this.className += (this.className ? " " : "") + className;
 		}
 	};
-	p.removeClass = function (className) {
-		var regexp = regexpCache[className];
-		if (!regexp) {
-			regexp = regexpCache[className] = new RegExp("(^|\\s)" + className + "(\\s|$)");
-		}
-		this.className = this.className.replace(regexp, "$2");
+	p.removeClass = function Element_prototype_removeClass (className) {
+		this.className = this.className.replace(new RegExp("(^|\\s)" + className + "(\\s|$)"), "$2");
 	};
-	p.hasClass = function (className) {
-		var regexp = regexpCache[className];
-		if (!regexp) {
-			regexp = regexpCache[className] = new RegExp("(^|\\s)" + className + "(\\s|$)");
-		}
-		return regexp.test(this.className);
+	p.hasClass = function Element_prototype_hasClass (className) {
+		return (" " + this.className + " ").indexOf(" " + className + " ") > -1;
 	};
 	delete p;
 })();
@@ -131,8 +122,8 @@ SELFHTML.Forum = {};
 
 /* Häufige XPath-Abfragefunktionen */
 
-SELFHTML.Forum.getThreadStart = function (li) {
-	return li.getNodesByXPath("ancestor::li[contains(@class, 'thread-start')]")[0];
+SELFHTML.Forum.getThreadStart = function SELFHTML_Forum_getThreadStart (li) {
+	return li.getElementByXPath("ancestor::li[contains(@class, 'thread-start')]");
 };
 
 
@@ -144,7 +135,7 @@ SELFHTML.Forum.Debug = {};
 
 /* Helferfunktionen für XPath-Benchmarks */
 
-SELFHTML.Forum.Debug = function (xpathExpression, contextNode, iterations) {
+SELFHTML.Forum.Debug = function f_SELFHTML_Forum_Debug (xpathExpression, contextNode, iterations) {
 	contextNode = contextNode || document.documentElement;
 	iterations = iterations || 500;
 	console.log("benchmarking", xpathExpression, "at", contextNode);
@@ -162,7 +153,7 @@ SELFHTML.Forum.Debug = function (xpathExpression, contextNode, iterations) {
 	return result;
 };
 
-Function.prototype.benchmark = function (iterations) {
+Function.prototype.benchmark = function f_Function_prototype_benchmark (iterations) {
 	console.log("benchmarking a function");
 	iterations = iterations || 1000;
 	var start = new Date().getTime();
@@ -182,14 +173,17 @@ SELFHTML.Forum.Modules = {};
 
 SELFHTML.Forum.Modules.queue = [];
 
-SELFHTML.Forum.Modules.add = function (documentType, func) {
-	SELFHTML.Forum.Modules.queue.push( { documentType : documentType, func : func } );
+SELFHTML.Forum.Modules.add = function f_SELFHTML_Forum_Modules_add (documentType, module) {
+	SELFHTML.Forum.Modules.queue.push({
+		documentType : documentType,
+		module : module
+	});
 };
 
-SELFHTML.Forum.Modules.init = function () {
-	SELFHTML.Forum.Modules.queue.forEach(function (obj) {
+SELFHTML.Forum.Modules.init = function f_SELFHTML_Forum_Modules_init () {
+	SELFHTML.Forum.Modules.queue.forEach(function f_SELFHTML_Forum_Modules_queue_forEach (obj) {
 		if (document.body.id == "selfforum-" + obj.documentType || obj.documentType == "all") {
-			obj.func();
+			obj.module.init();
 		}
 	});
 };
@@ -200,71 +194,82 @@ document.addEventListener("DOMContentLoaded", SELFHTML.Forum.Modules.init, false
 
 /* Globale Initialisierung */
 
-SELFHTML.Forum.Init = function () {
+SELFHTML.Forum.init = function f_SELFHTML_Forum_Init () {
 	SELFHTML.Forum.ready = true;
 };
 
-SELFHTML.Forum.Modules.add("all", SELFHTML.Forum.Init);
+SELFHTML.Forum.Modules.add("all", SELFHTML.Forum);
 
 /* #################################################################################### */
 
 /* Initialisierung Hauptseite */
 
-SELFHTML.Forum.Init.hauptseite = function () {
+SELFHTML.Forum.Hauptseite = {};
 
-	var F = SELFHTML.Forum;
-
-	F.threadList = document.getElementById("root");
-	if (!F.threadList) return;
-
+SELFHTML.Forum.Hauptseite.init = function f_SELFHTML_Forum_Hauptseite_init () {
+	SELFHTML.Forum.threadList = document.getElementById("root");
 };
 
-SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Init.hauptseite);
+SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Hauptseite);
 
 /* #################################################################################### */
 
-/* Cache */
+/* Thread List Cache */
 
-SELFHTML.Forum.Cache = {};
+SELFHTML.Forum.ThreadListCache = {};
 
-SELFHTML.Forum.Cache.init = function () {
+SELFHTML.Forum.ThreadListCache.init = function f_SELFHTML_Forum_ThreadListCache_init () {
 
 	var F = SELFHTML.Forum,
-		allPostings = (F.postingsByAuthor = {}),
-		threadStarts = (F.threadStartsByAuthor = {}),
+	
+		postingsByAuthor = (F.postingsByAuthor = {}),
+		threadStartsByAuthor = (F.threadStartsByAuthor = {}),
 		ownPostings = (F.ownPostings = []),
-		allCategories = (F.postingsByCategory = {});
-
-	F.threadList.getNodesByXPath("descendant::span[contains(@class, 'author')]").forEach(function (authorSpan) {
-
-		var authorName = authorSpan.firstChild.nodeValue,
+		postingsByCategory = (F.postingsByCategory = {}),
+		
+		authorSpans = F.threadList.getElementsByClassName ?
+			F.threadList.getElementsByClassName('author') :
+			F.threadList.getElementsByXPath("descendant::span[@class = 'author']").toArray();
+	
+	for (var i = 0, length = authorSpans.length; i < length; i++) {
+	
+		var authorSpan = authorSpans[i],
+			authorName = authorSpan.firstChild.nodeValue,
 			postingSpan = authorSpan.parentNode,
-			li = postingSpan.getNodesByXPath("ancestor::li[position() = 1]")[0],
+			li = postingSpan.parentNode,
 			postingId = li.id,
-			parentLi = li.parentNode.parentNode;
-
+			parentLi = li.parentNode.parentNode,
+			categoryName;
+		
+		/* Save in own postings hash */
 		if (li.hasClass("own-posting")) {
 			ownPostings.push(li);
 			if (!F.ownName) {
 				F.ownName = authorName;
 			}
 		}
-
-		(allPostings[authorName] || (allPostings[authorName] = [])).push(li);
-
+		
+		/* Save in author hash */
+		(postingsByAuthor[authorName] || (postingsByAuthor[authorName] = [])).push(li);
+		
+		/* Save in thread start hash */
 		if (parentLi.hasClass("thread-start")) {
-			(threadStarts[authorName] || (threadStarts[authorName] = [])).push(parentLi);
+			(threadStartsByAuthor[authorName] || (threadStartsByAuthor[authorName] = [])).push(parentLi);
 		}
-
-		var result = postingSpan.getNodesByXPath("child::span[contains(@class, 'subject')]/child::*[contains(@class, 'category') or contains(@class, 'cathigh')]/child::text()");
-		var categoryName = result[0].nodeValue;
-		(allCategories[categoryName] || (allCategories[categoryName] = [])).push(li);
-
-	});
+		
+		/* Save in category hash */
+		categoryName = postingSpan
+			.firstChild // span.subject
+			.firstChild // span.category
+			.childNodes[1] // second text node
+			.nodeValue;
+		(postingsByCategory[categoryName] || (postingsByCategory[categoryName] = [])).push(li);
+		
+	}
 
 };
 
-SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Cache.init);
+SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.ThreadListCache);
 
 /* #################################################################################### */
 
@@ -272,7 +277,7 @@ SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Cache.init);
 
 SELFHTML.Forum.ContextMenu = {};
 
-SELFHTML.Forum.ContextMenu.init = function () {
+SELFHTML.Forum.ContextMenu.init = function f_SELFHTML_Forum_ContextMenu_init () {
 
 	var F = SELFHTML.Forum, M = F.ContextMenu;
 	M.target = document.getElementById("contextMenuTitle");
@@ -281,9 +286,9 @@ SELFHTML.Forum.ContextMenu.init = function () {
 
 };
 
-SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.ContextMenu.init);
+SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.ContextMenu);
 
-SELFHTML.Forum.ContextMenu.toggle = function (e) {
+SELFHTML.Forum.ContextMenu.toggle = function f_SELFHTML_Forum_ContextMenu_toggle (e) {
 
 	var F = SELFHTML.Forum, C = F.Config, M = F.ContextMenu, Fi = F.Filter, S = F.Statistics,
 		target = e.target,
@@ -340,14 +345,17 @@ SELFHTML.Forum.ContextMenu.toggle = function (e) {
 	M.show(target, links);
 };
 
-SELFHTML.Forum.ContextMenu.show = function (target, links) {
+SELFHTML.Forum.ContextMenu.show = function f_SELFHTML_Forum_ContextMenu_show (target, links) {
 	var F = SELFHTML.Forum, M = F.ContextMenu;
+	
 	if (M.target) {
 		M.target.removeAttribute("id");
 	}
 	target.id = "contextMenuTitle";
 
-	var layer = new F.Layer( { id : "contextMenu", tagName : "ul" } ), ul = layer.element;
+	var layer = new F.Layer( { id : "contextMenu", tagName : "ul" } ),
+		ul = layer.element;
+	
 	while (ul.firstChild) {
 		ul.removeChild(ul.firstChild);
 	}
@@ -370,7 +378,7 @@ SELFHTML.Forum.ContextMenu.show = function (target, links) {
 	M.target = target;
 };
 
-SELFHTML.Forum.ContextMenu.hide = function () {
+SELFHTML.Forum.ContextMenu.hide = function f_SELFHTML_Forum_ContextMenu_hide () {
 	var F = SELFHTML.Forum, M = F.ContextMenu;
 	if (M.target) {
 		M.target.removeAttribute("id");
@@ -378,7 +386,7 @@ SELFHTML.Forum.ContextMenu.hide = function () {
 	new F.Layer( { id : "contextMenu" } ).hide();
 };
 
-SELFHTML.Forum.ContextMenu.threadListMouseOver = function (e) {
+SELFHTML.Forum.ContextMenu.threadListMouseOver = function f_SELFHTML_Forum_ContextMenu_threadListMouseOver (e) {
 	var F = SELFHTML.Forum, target = e.target;
 	if (!target.hasClass("javascript-button") && (target.hasClass("author") || target.hasClass("category") || target.hasClass("cathigh"))) {
 		target.addClass("javascript-button");
@@ -389,9 +397,9 @@ SELFHTML.Forum.ContextMenu.threadListMouseOver = function (e) {
 
 /* Layer-Abstraktion */
 
-SELFHTML.Forum.Layer = function (options) {
+SELFHTML.Forum.Layer = function f_SELFHTML_Forum_Layer (options) {
 	if (!options || !options.id) {
-		return false;
+		throw new TypeError;
 	}
 	var layers = arguments.callee.layers || (arguments.callee.layers = {});
 	if (layers[options.id]) {
@@ -415,19 +423,19 @@ SELFHTML.Forum.Layer = function (options) {
 };
 
 SELFHTML.Forum.Layer.prototype = {
-	show : function () {
+	show : function  f_Layer_prototype_show () {
 		if (this.element) {
 			this.element.style.display = "block";
 		}
 		return this;
 	},
-	hide : function () {
+	hide : function f_Layer_prototype_hide () {
 		if (this.element) {
 			this.element.style.display = "none";
 		}
 		return this;
 	},
-	html : function (html) {
+	html : function f_Layer_prototype_html (html) {
 		if (this.element) {
 			this.element.innerHTML = html;
 		}
@@ -441,11 +449,11 @@ SELFHTML.Forum.Layer.prototype = {
 
 SELFHTML.Forum.Info = {};
 
-SELFHTML.Forum.Info.show = function (html) {
+SELFHTML.Forum.Info.show = function f_SELFHTML_Forum_Info_show (html) {
 	new SELFHTML.Forum.Layer( { id : "scriptInfo", tagName : "div", parent : document.getElementById("kopf-haupt") } ).html(html).show();
 };
 
-SELFHTML.Forum.Info.hide = function (html) {
+SELFHTML.Forum.Info.hide = function f_SELFHTML_Forum_Info_hide (html) {
 	new SELFHTML.Forum.Layer( { id : "scriptInfo" } ).hide();
 };
 
@@ -455,17 +463,22 @@ SELFHTML.Forum.Info.hide = function (html) {
 
 SELFHTML.Forum.Filter = {};
 
-SELFHTML.Forum.Filter.init = function () {
+SELFHTML.Forum.Filter.init = function f_SELFHTML_Forum_Filter_init () {
 	var Fi = SELFHTML.Forum.Filter;
-	Fi.active = false, Fi.highlightedPostings = [], Fi.filteredThreads = [];
+	
+	Fi.active = false;
+	Fi.highlightedPostings = [];
+	Fi.filteredThreads = [];
+	
 	Fi.initCategoryFilter();
 };
 
-SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Filter.init);
+SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Filter);
 
-SELFHTML.Forum.Filter.initCategoryFilter = function () {
+SELFHTML.Forum.Filter.initCategoryFilter = function f_SELFHTML_Forum_Filter_initCategoryFilter () {
 	var F = SELFHTML.Forum, Fi = F.Filter,
 		form = document.getElementById("themenfilter").getElementsByTagName("form")[0];
+	
 	form.addEventListener("submit", function (e) {
 		e.preventDefault();
 		var select = this.elements.lf,
@@ -479,53 +492,63 @@ SELFHTML.Forum.Filter.initCategoryFilter = function () {
 	}, false);
 };
 
-SELFHTML.Forum.Filter.filterByAuthor = function (authorName) {
+SELFHTML.Forum.Filter.filterByAuthor = function f_SELFHTML_Forum_Filter_filterByAuthor (authorName) {
 	var F = SELFHTML.Forum, Fi = F.Filter;
-
+	
 	Fi.remove();
 	F.ContextMenu.hide();
+	
+	var postings = F.postingsByAuthor[authorName];
+	if (postings) {
+		postings.forEach(function f_filterByAuthor_postings_forEach (li) {
+			li.addClass("highlighted");
+			Fi.highlightedPostings.push(li);
+		
+			var threadStart = F.getThreadStart(li);
+			threadStart.addClass("contains-filter-postings");
+			Fi.filteredThreads.push(threadStart);
+	
+		});
+	}
+	
+	// Redraw
 	F.threadList.addClass("filter");
-
-	var postings = F.postingsByAuthor[authorName] || [];
-	postings.forEach(function (li) {
-		li.addClass("highlighted");
-		Fi.highlightedPostings.push(li);
-
-		var threadStart = F.getThreadStart(li);
-		threadStart.addClass("contains-filter-postings");
-		Fi.filteredThreads.push(threadStart);
-
-	});
-
+	
 	F.Info.show("Gefiltert nach Autor " + authorName + " &ndash; <a href='javascript:SELFHTML.Forum.Filter.remove()'>Filter entfernen</a>");
-
+	
 	Fi.active = true;
 };
 
-SELFHTML.Forum.Filter.filterByCategory = function (categoryName) {
+SELFHTML.Forum.Filter.filterByCategory = function f_SELFHTML_Forum_Filter_filterByCategory (categoryName) {
 	var F = SELFHTML.Forum, Fi = F.Filter;
-
+	
 	Fi.remove();
 	F.ContextMenu.hide();
+	
+	var postings = F.postingsByCategory[categoryName];
+	if (postings) {
+		postings.forEach(function f_filterByCategory_postings_forEach (li) {
+			var threadStart = F.getThreadStart(li);
+			threadStart.addClass("contains-filter-postings");
+			Fi.filteredThreads.push(threadStart);
+		});
+	}
+	
+	// Redraw
 	F.threadList.addClass("filter");
-
-	var postings = F.postingsByCategory[categoryName] || [];
-	postings.forEach(function (li) {
-		var threadStart = F.getThreadStart(li);
-		threadStart.addClass("contains-filter-postings");
-		Fi.filteredThreads.push(threadStart);
-	});
-
+	
 	F.Info.show("Gefiltert nach Themenbereich " + categoryName + " &ndash; <a href='javascript:SELFHTML.Forum.Filter.remove()'>Filter entfernen</a>");
-
+	
 	Fi.active = true;
 };
 
-SELFHTML.Forum.Filter.remove = function () {
+SELFHTML.Forum.Filter.remove = function f_SELFHTML_Forum_Filter_remove () {
 	var F = SELFHTML.Forum, Fi = F.Filter;
+	
 	if (!Fi.active) return;
+	
 	F.Info.hide();
-	F.threadList.removeClass("filter");
+	
 	var threadStart, li;
 	while (threadStart = Fi.filteredThreads.shift()) {
 		threadStart.removeClass("contains-filter-postings");
@@ -533,22 +556,24 @@ SELFHTML.Forum.Filter.remove = function () {
 	while (li = Fi.highlightedPostings.shift()) {
 		li.removeClass("highlighted");
 	}
+	
+	// Redraw
+	F.threadList.removeClass("filter");
+	
 	Fi.active = false;
 };
 
 /* #################################################################################### */
 
-SELFHTML.Forum.followupNotice = function () {
+SELFHTML.Forum.FollowupNotice = {};
 
-	var F = SELFHTML.Forum;
-
-	F.newFollowupNodes = [];
-	F.ownPostings.forEach(function (ownPosting) {
-		ownPosting.getNodesByXPath("child::ul/child::li[not(contains(@class, 'visited'))]").forEach(function (followUpNode) {
-			F.newFollowupNodes.push(followUpNode);
-		});
-	});
-
+SELFHTML.Forum.FollowupNotice.init = function f_SELFHTML_Forum_FollowupNotice_init () {
+	
+	var F = SELFHTML.Forum,
+		newFollowupNodes = F.threadList
+			.getElementsByXPath("descendant::li[contains(@class, 'own-posting')]/child::ul/child::li[not(contains(@class, 'visited'))]")
+			.toArray();
+	
 	/*
 	An welches Element soll die Meldungsbox »Neue Antworten« angehängt werden?
 	kopf-menu = Zelle in der linken Spalte in der Kopftabelle
@@ -560,24 +585,27 @@ SELFHTML.Forum.followupNotice = function () {
 	var start = new Date().getTime(),
 		newFollowups = [];
 
-	F.newFollowupNodes.forEach(function (newFollowupNode) {
-
-		var newFollowup = {};
+	newFollowupNodes.forEach(function f_newFollowupNodes_forEach1 (newFollowupNode) {
+		
+		var newFollowup, posting, aElement, author;
+		
+		newFollowup = {};
 		newFollowup.element = newFollowupNode;
 
-		var posting = newFollowupNode.getNodesByXPath("(child::span | child::span/child::span)[contains(@class, 'posting')]")[0];
+		posting = newFollowupNode.getElementByXPath("(child::span | child::span/child::span)[contains(@class, 'posting')]");
 
-		var aElement = posting.getNodesByXPath("child::span[contains(@class, 'subject')]/child::a")[0];
+		aElement = posting.getElementByXPath("child::span[contains(@class, 'subject')]/child::a");
 
 		/* Link hat keine visited-Klasse, ist aber in der Browser-History als besucht markiert */
 		if (window.getComputedStyle(aElement, null).outlineStyle == "solid") {
+			console.log('Link hat keine visited-Klasse, ist aber in der Browser-History als besucht markiert');
 			return;
 		}
 
 		newFollowup.title = aElement.firstChild.nodeValue;
 		newFollowup.href = aElement.href;
 
-		var author = posting.getNodesByXPath("child::span[contains(@class, 'author')]/text()")[0];
+		author = posting.getElementByXPath("child::span[contains(@class, 'author')]/text()");
 		newFollowup.author = author.nodeValue;
 
 		newFollowups.push(newFollowup);
@@ -592,7 +620,7 @@ SELFHTML.Forum.followupNotice = function () {
 		layer.element.className = "new-anwers";
 		divHTML += "<h2>Neue Antworten</h2>";
 		divHTML += "<ul>";
-		newFollowups.forEach(function (newFollowup) {
+		newFollowups.forEach(function f_newFollowupNodes_forEach2 (newFollowup) {
 			divHTML += "<li><a href='" + newFollowup.href + "'>" + newFollowup.title.escapeHTML() + "</a>";
 			divHTML += " von " + newFollowup.author.escapeHTML() + "</li>";
 		});
@@ -605,7 +633,7 @@ SELFHTML.Forum.followupNotice = function () {
 	layer.html(divHTML);
 }
 
-SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.followupNotice);
+SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.FollowupNotice);
 
 /* #################################################################################### */
 
@@ -618,7 +646,7 @@ SELFHTML.Forum.Config.directives = {
 	"SortThreads" : { parameter : "sortthreads", type : "single" }
 };
 
-SELFHTML.Forum.Config.init = function () {
+SELFHTML.Forum.Config.init = function f_SELFHTML_Forum_Config_init () {
 	var F = SELFHTML.Forum, C = F.Config;
 
 	Object.forEach(C.directives, function (directive, obj) {
@@ -634,9 +662,9 @@ SELFHTML.Forum.Config.init = function () {
 	});
 };
 
-SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Config.init);
+SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Config);
 
-SELFHTML.Forum.Config.setValue = function (directive, value) {
+SELFHTML.Forum.Config.setValue = function f_SELFHTML_Forum_Config_setValue (directive, value) {
 	var F = SELFHTML.Forum, C = F.Config, obj = C.directives[directive];
 	if (!obj) return;
 	var uri  = userconf_uri + "?a=setvalue&directive=" + directive + "&" + obj.parameter + "=" + encodeURIComponent(value) +
@@ -644,7 +672,7 @@ SELFHTML.Forum.Config.setValue = function (directive, value) {
 	xmlhttp_get_contents(xmlhttp, uri, null, null);
 };
 
-SELFHTML.Forum.Config.removeValue = function (directive, value) {
+SELFHTML.Forum.Config.removeValue = function f_SELFHTML_Forum_Config_removeValue (directive, value) {
 	var F = SELFHTML.Forum, C = F.Config, obj = C.directives[directive];
 	if (!obj) return;
 	var uri  = userconf_uri + "?a=removevalue&directive=" + directive + "&" + obj.parameter + "=" + encodeURIComponent(value) +
@@ -652,7 +680,7 @@ SELFHTML.Forum.Config.removeValue = function (directive, value) {
 	xmlhttp_get_contents(xmlhttp, uri, null, null);
 };
 
-SELFHTML.Forum.Config.confirmReload = function () {
+SELFHTML.Forum.Config.confirmReload = function f_SELFHTML_Forum_Config_confirmReload () {
 	var reloadDialog = "Die Einstellung wurde auf dem Server gespeichert. Soll die Forumshauptseite jetzt neu geladen werden?";
 	if (window.confirm(reloadDialog)) {
 		location.reload();
@@ -665,7 +693,7 @@ SELFHTML.Forum.Config.confirmReload = function () {
 
 SELFHTML.Forum.Statistics = {};
 
-SELFHTML.Forum.Statistics.init = function (type) {
+SELFHTML.Forum.Statistics.init = function f_SELFHTML_Forum_Statistics_init (type) {
 	if (typeof type != "string") {
 		arguments.callee("author");
 		arguments.callee("category");
@@ -674,16 +702,17 @@ SELFHTML.Forum.Statistics.init = function (type) {
 
 	var F = SELFHTML.Forum, Fi = F.Filter, S = F.Statistics,
 		postingsByType = (type == "author") ? F.postingsByAuthor : F.postingsByCategory,
-		typeName, ranking = [];
+		typeName,
+		ranking = [];
 
-	Object.forEach(postingsByType, function (typeName) {
+	Object.forEach(postingsByType, function f_ranking_push_postingNumber (typeName, postings) {
 		ranking.push( {
 			"typeName" : typeName,
-			"postingNumber" : postingsByType[typeName].length
+			"postingNumber" : postings.length
 		} );
 	});
 
-	ranking.sort(function (a, b) {
+	ranking.sort(function f_ranking_sort (a, b) {
 		return a.postingNumber > b.postingNumber ? -1 : 1;
 	});
 
@@ -695,13 +724,14 @@ SELFHTML.Forum.Statistics.init = function (type) {
 
 	var html = "<p><a href='javascript:void(0)' class='hide'>Ausblenden</a></p>";
 	html += "<table><tbody>";
-	ranking.forEach(function (obj) {
+	ranking.forEach(function f_ranking_append_html (obj) {
 		html += "<tr><th><a href='javascript:void(0)'>" + obj.typeName.escapeHTML() + "</th><td>" + obj.postingNumber + "</td></tr>";
 	});
 	html += "</tbody></table>";
 
 	var layer = new F.Layer( { id : type + "Statistics", tagName : "div", className : "statistics" } );
 	layer.html(html);
+	
 	layer.element.addEventListener("click", function (e) {
 		e.preventDefault();
 		var target = e.target;
@@ -714,9 +744,9 @@ SELFHTML.Forum.Statistics.init = function (type) {
 
 };
 
-SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Statistics.init);
+SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Statistics);
 
-SELFHTML.Forum.Statistics.show = function (type) {
+SELFHTML.Forum.Statistics.show = function f_SELFHTML_Forum_Statistics_show (type) {
 	var F = SELFHTML.Forum;
 	F.ContextMenu.hide();
 	var layer = new F.Layer( { id : type + "Statistics" } );
@@ -726,7 +756,7 @@ SELFHTML.Forum.Statistics.show = function (type) {
 	layer.element.style.maxHeight = height + "px";
 };
 
-SELFHTML.Forum.Statistics.hide = function () {
+SELFHTML.Forum.Statistics.hide = function f_SELFHTML_Forum_Statistics_hide () {
 	var F = SELFHTML.Forum;
 	new F.Layer( { id : "categoryStatistics" } ).hide();
 	new F.Layer( { id : "authorStatistics" } ).hide();
@@ -736,7 +766,7 @@ SELFHTML.Forum.Statistics.hide = function () {
 
 SELFHTML.Forum.Sorting = {};
 
-SELFHTML.Forum.Sorting.init = function () {
+SELFHTML.Forum.Sorting.init = function f_SELFHTML_Forum_Sorting_init () {
 	var sibling = document.getElementById("themenfilter");
 	if (!sibling) return;
 	var elem = document.createElement("div");
@@ -752,9 +782,9 @@ SELFHTML.Forum.Sorting.init = function () {
 	sibling.parentNode.insertBefore(elem, sibling);
 };
 
-SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Sorting.init);
+SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Sorting);
 
-SELFHTML.Forum.Sorting.change = function (e) {
+SELFHTML.Forum.Sorting.change = function f_SELFHTML_Forum_Sorting_change (e) {
 	var C = SELFHTML.Forum.Config,
 		target = e.target, targetName = target.nodeName.toLowerCase(),
 		value;
