@@ -1,6 +1,6 @@
 /*!
 JavaScript für die benutzerspezifische Ansicht des SELFHTML-Forums (http://forum.de.selfhtml.org/)
-Author: Mathias Schäfer
+Author: Mathias Schäfer (molily)
 Lizenz: MIT License
 */
 
