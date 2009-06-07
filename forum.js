@@ -63,7 +63,7 @@ if (!Element.prototype.contains) {
 }
 
 Element.prototype.getElementByXPath = function f_Element_prototype_getElementByXPath (xpathExpression) {
-	return document.evaluate(xpathExpression, this, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null).singleNodeValue;
+	return document.evaluate(xpathExpression, this, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 };
 
 Element.prototype.getElementsByXPath = function f_Element_prototype_getElementsByXPath (xpathExpression) {
