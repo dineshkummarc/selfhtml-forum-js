@@ -29,7 +29,7 @@ code, pre {
 
 <h2>Einleitung</h2>
 
-<p>Das im Folgenden beschriebene <a href="../forum.js">Script</a> fügt der benutzerspezifischen Ansicht (»my«) des SELFHTML-Forums einige nützliche clientseitige Funktionen hinzu. Darüber hinaus soll es ein ausbaubares Framework für weitere Funktionen darstellen.</p>
+<p>Das im Folgenden beschriebene <a href="forum.js">Script</a> fügt der benutzerspezifischen Ansicht (»my«) des SELFHTML-Forums einige nützliche clientseitige Funktionen hinzu. Darüber hinaus soll es ein ausbaubares Framework für weitere Funktionen darstellen.</p>
 
 <p>Viele Ideen für stammen von Zapps Script <a href="http://zapp.i-networx.de">Neue Funktionen für das SELFHTML-Forum</a>. Vielen Dank an ihn!</p>
 
@@ -39,9 +39,10 @@ code, pre {
 
 <ul>
 <li>DOM 2 Events inkl. Capturing</li>
-<li>DOM 3 XPath</li>
-<li>Der Event DOMContentLoaded</li>
+<li>DOM 3 XPath und wahlweise HTML 5 getElementsByClassName</li>
+<li>DOMContentLoaded-Event</li>
 <li>Prototypische Erweiterung von Kern-Objekten und DOM-Interfaces</li>
+<li>Methoden aus JavaScript 1.6 bzw. ECMAScript 3.1</li>
 </ul>
 
 <p>Diese Techniken werden von allen zeitgemäßen JavaScript-Interpretern unterstützt. Das Script funktioniert daher in Gecko-, Webkit- oder Opera-basierten Browsern. Der Internet Explorer unterstützt keine der oben genannten Techniken. Es macht keinen Spaß und keinen Sinn, für all diese Techniken IE-Workarounds zu schreiben. Daher wird der IE nicht unterstützt. Auf diese Weise konnte das Script sehr geradlinig und performant entwickelt werden.</p>
@@ -53,12 +54,12 @@ code, pre {
 <pre>
 * CSS
   > Eigenes Stylesheet
-    > <strong>http://forum.de.selfhtml.org/js/javascript.css</strong>
+    > <strong>http://molily.de/selfhtml-forum-js/javascript.css</strong>
       > [X] Ergänzt das Standard-Stylesheet
 
 * Javascript
   > Eigene JS-Datei
-    > <strong>http://forum.de.selfhtml.org/js/forum.js</strong>
+    > <strong>http://molily.de/selfhtml-forum-js/forum.js</strong>
 </pre>
 
 <p>Damit das Scripts vollständig funktioniert, sind zudem folgende Einstellungen nötig:</p>
@@ -79,7 +80,7 @@ code, pre {
 
 <p>Alle Regeln für Darstellung sind in der besagten <code>javascript.css</code> untergebracht. Sie können sich das Script kopieren, z.B. die Größen und Farben anpassen, das angepasste Script irgendwo hochladen und dann deren URI angeben. Oder sie schreiben ein Stylesheet, dass <code>javascript.css</code> mit <code>@import</code> einbindet und gewisse Regeln überschreibt. Oder Sie binden <code>javascript.css</code> wie oben beschrieben in den Benutzereinstellungen ein und geben zusätzlich ein <a href="http://forum.de.selfhtml.org/cgi-bin/user/fo_userconf#experten">Inline-CSS</a> mit überschreibenden Regeln ein (das Inline-CSS wird nach dem externen CSS eingebunden).</p>
 
-<p><code>javascript.css</code> wird bei mir (molily) in Zusammenhang mit einem allgemeinen Stylesheet für das Forum verwendet, das auf den folgenden Screenshots in Aktion zu sehen ist. Dies nimmt einige radikale Umformatierungen vor und blendet von mir nicht benötigte Elemente aus. Sie finden dieses Stylesheet unter <a href="http://forum.de.selfhtml.org/js/forum.css">http://forum.de.selfhtml.org/js/forum.css</a>, es bindet zu aller erst <code>javascript.css</code> ein.</p>
+<p><code>javascript.css</code> wird bei mir (molily) in Zusammenhang mit einem allgemeinen Stylesheet für das Forum verwendet, das auf den folgenden Screenshots in Aktion zu sehen ist. Dies nimmt einige radikale Umformatierungen vor und blendet von mir nicht benötigte Elemente aus. Sie finden dieses Stylesheet unter <a href="http://molily.de/selfhtml-forum-js/forum.css">http://molily.de/selfhtml-forum-js/forum.css</a>, es bindet zu aller erst <code>javascript.css</code> ein.</p>
 
 <h2>Vorstellung der Funktionen</h2>
 
@@ -88,21 +89,21 @@ code, pre {
 
 <p>Die normale Threadansicht sieht folgendermaßen aus:</p>
 
-<p class="screenshot"><img src="normale-threadansicht.png" alt="" /></p>
+<p class="screenshot"><img src="img/normale-threadansicht.png" alt="" /></p>
 
 <p>Das Script bietet nun ein Kontextmenü an zwei Stellen. Darüber sind die meisten Funktionen zugänglich. Das Kontextmenü wird aktiviert durch einen Linksklick auf einen Autornamen bzw. auf einen Themenbereich-Namen.</p>
 
 <p>Das Autoren-Kontextmenü:</p>
 
-<p class="screenshot"><img src="autormenue.png" alt="" /></p>
+<p class="screenshot"><img src="img/autormenue.png" alt="" /></p>
 
 <p>Das Themenbereich-Kontextmenü:</p>
 
-<p class="screenshot"><img src="themenbereichmenue.png" alt="" /></p>
+<p class="screenshot"><img src="img/themenbereichmenue.png" alt="" /></p>
 
 <p>Diese Kontextmenüs haben verschiedene Einträge, je nachdem, ob es sich um einen hervorgehobenen Themenbereich bzw. Autor handelt oder nicht oder ob man selbst der Autor ist. Ein Beispiel für einen hervorgehobenen Themenbereich:</p>
 
-<p class="screenshot"><img src="themenbereichmenue-hervorgehoben.png" alt="" /></p>
+<p class="screenshot"><img src="img/themenbereichmenue-hervorgehoben.png" alt="" /></p>
 
 
 <h3>Themenbereich- und Autorenfilter</h3>
@@ -111,19 +112,19 @@ code, pre {
 
 <p>Eine Filterung nach Autor sieht folgendermaßen aus:</p>
 
-<p class="screenshot"><img src="gefiltert-nach-autor.png" alt="" /></p>
+<p class="screenshot"><img src="img/gefiltert-nach-autor.png" alt="" /></p>
 
 <p>Die Postings des jeweiligen gesuchten Autors werden zur Zeit gelb markiert.</p>
 
 <p>Filterung nach Themenbereich:</p>
 
-<p class="screenshot"><img src="gefiltert-nach-themenbereich.png" alt="" /></p>
+<p class="screenshot"><img src="img/gefiltert-nach-themenbereich.png" alt="" /></p>
 
 <p>Wie man sieht erscheint oben im Header ein Info-Bereich mit einem Link, mit der sich der Filter wieder aufheben kann. Sie können aber auch einen anderen Filter über das Kontextmenü aktivieren, die alte Filterung wird dann aufgehoben und die neue angewendet.</p>
 
 <p>Der browserseitige JavaScript-Filter kann auch über das Filter-Formular im Forumskopf bedient werden. Dieses funktioniert normalerweise ohne JavaScript. Das Script schaltet sich dort ein:</p>
 
-<p class="screenshot"><img src="themenbereichfilter-oben.png" alt="" /></p>
+<p class="screenshot"><img src="img/themenbereichfilter-oben.png" alt="" /></p>
 
 <p>Das Absenden des Formulars führt zur Filter-Ansicht wie im vorigen Screenshot.</p>
 
@@ -143,11 +144,11 @@ code, pre {
 
 <p>Autorenstatistik:</p>
 
-<p class="screenshot"><img src="autorenstatistik.png" alt="" /></p>
+<p class="screenshot"><img src="img/autorenstatistik.png" alt="" /></p>
 
 <p>Themenbereich-Statistik:</p>
 
-<p class="screenshot"><img src="themenbereich-statistik.png" alt="" /></p>
+<p class="screenshot"><img src="img/themenbereich-statistik.png" alt="" /></p>
 
 <p>Mit einem Klick auf die Autoren- bzw. Themenbereich-Namen kann die Forumshauptseite nach diesen gefiltert werden.</p>
 
@@ -156,7 +157,7 @@ code, pre {
 
 <p>Im Forumskopf werden beim Laden alle noch ungelesenen Antworten auf eigene Beiträge aufgelistet. Dieser »Followup-Notice« sieht so etwa so aus:</p>
 
-<p class="screenshot"><img src="neue-antworten.png" alt="" /></p>
+<p class="screenshot"><img src="img/neue-antworten.png" alt="" /></p>
 
 
 <h2>Interna, Aufbau und Konventionen</h2>
