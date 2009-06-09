@@ -11,7 +11,7 @@
 /* Markiere alle besuchten Posting-Links mit einer wirkungslosen CSS-Eigenschaft,
    sodass bereits gelesene Postings auch ohne serverseitige Lesen-Markierung
    erkannt werden */
-#root a.title: visited {
+#root a.title:visited {
 	outline-style: solid;
 	outline-width: 0;
 }
@@ -105,16 +105,12 @@ li.highlighted > span.posting {
 #followup-notice h2 {
 	font-size: 1em;
 	text-align: center;
-	margin: 0.2em 0;
+	margin: 0 0 0.5em;
 }
-#followup-notice p {
-	text-align: center;
+#followup-notice li {
+	margin-bottom: 8px;
 }
-#followup-notice ul, #followup-notice p {
-	margin: 0.1em;
-}
-#followup-notice ul {
-	list-style-position: inside;
+#followup-notice a {
 }
 
 /* Statistiken */

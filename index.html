@@ -18,8 +18,9 @@ img {
 	border:1px solid black;
 }
 code, pre {
-	font-size:inherit;
-	font-family:"Consolas","Bitstream Vera Sans Mono","Courier New",sans-serif;
+	font-size: inherit;
+	font-family: "Consolas","Bitstream Vera Sans Mono","Courier New",sans-serif;
+	color: #008;
 }
 </style>
 </head>
@@ -167,31 +168,31 @@ code, pre {
 
 <p>Das Script führt einen globalen Namespace <code>SELFHTML</code> mit dem Unter-Namespace <code>SELFHTML.Forum</code> ein. Alle Funktionen sind darin gekapselt und auch neue Objekte sollten unter <code>SELFHTML.Forum</code> gespeichert werden. Bitte keine Funktionen außerhalb dieses Namensraumes, schon gar nicht direkt unter <code>window</code>.</p>
 
-<p>In den Funktionen wird der Namensraum <code>SELFHTML.Forum</code> durch eine lokale Referenz namens <code>F</code> abgekürzt, sofern mehrere Zugriffe darauf erfolgen. Dies spart Unmengen an Tipparbeit.</p>
+<p>In den Funktionen wird der Namensraum <code>SELFHTML.Forum</code> durch eine lokale Referenz namens <code>F</code> abgekürzt, sofern mehrere Zugriffe darauf erfolgen. Dies spart Unmengen an Tipparbeit und verbessert die Performance.</p>
 
 
 <h3>Module und Initialisierung</h3>
 
-<p>Das Script besteht aus Modulen, die Initialisierungsfunktionen bereitstellen. Diese werden folgenermaßen registriert:</p>
+<p>Das Script besteht aus Modulen, die Initialisierungsfunktionen bereitstellen. Diese werden folgendermaßen registriert:</p>
 
 <pre>
-SELFHTML.Forum.addModule("all", SELFHTML.Forum.initBeispiel); // für Hauptseite und Posting-Ansicht
-SELFHTML.Forum.addModule("hauptseite", SELFHTML.Forum.initBeispiel); // nur für Hauptseite
-SELFHTML.Forum.addModule("nachricht", SELFHTML.Forum.initBeispiel); // nur für Posting-Ansicht
+SELFHTML.Forum.addModule("all", SELFHTML.Forum.Beispielmodul); // für Hauptseite und Posting-Ansicht
+SELFHTML.Forum.addModule("hauptseite", SELFHTML.Forum.Beispielmodul); // nur für Hauptseite
+SELFHTML.Forum.addModule("nachricht", SELFHTML.Forum.Beispielmodul); // nur für Posting-Ansicht
 </pre>
 
-<p>Diese Initialisierungsfunktionen werden ausgeführt, wenn das Ereignis <code>DOMContentLoaded</code> passiert, d.h. der DOM-Knotenbaum für den Scriptzugriff zur Verfügung steht.</p>
+<p>Es wird erwartet, dass an den angegebenen Modul-Objekte eine Initialisierungsfunktionen namens <code>init</code> existiert. Diese wird ausgeführt, wenn das Ereignis <code>DOMContentLoaded</code> passiert, d.h. der DOM-Knotenbaum für den Scriptzugriff zur Verfügung steht.</p>
 
 
 <h3>Indizes</h3>
 
-<p>Für die Filterung und die Statistik werden beim Start vier Indizes angelegt (siehe Funktion <code>F.initCache</code>):</p>
+<p>Für die Filterung und die Statistik werden beim Start vier Indizes angelegt (siehe Funktion <code>SELFHTML.Forum.ThreadListCache.init</code>):</p>
 
 <pre>
 F.postingsByAuthor = {}
 F.threadStartsByAuthor = {}
 F.ownPostings = []
-F.postingsByCategory = {};
+F.postingsByCategory = {}
 </pre>
 
 <p>In zwei Objects werden die Posting nach Themenbereichen und Autornamen gespeichert. Unter <code>F.postingsByAuthor["molily"]</code> findet sich dann ein Array mit allen <code>li</code>-Elementobjekten der Postings, die »molily« verfasst hat. Dasselbe gilt z.B. für <code>F.postingsByCategory["JAVASCRIPT"]</code>.</p>
@@ -205,7 +206,7 @@ F.postingsByCategory = {};
 
 <p>Dasselbe gilt für Objects (Hashes). Diese werden nicht mit <code>for-in</code> durchlaufen, sondern mit der »statischen Klassenmethode« <code>Object.forEach</code>. (<code>Object.prototype</code> is verboten, deshalb ist diese Schreibweise nötig.) Diese Methode ist »sicher«, weil sie prototypisch vererbte Member überspringt. <code>for-in</code>-Schleifen kommen dadurch außerhalb dieser Helfermethode nicht vor.</p>
 
-<p>Schließlich werden Elementknoten erweitert um die Methoden <code>toggleClass</code>, <code>addClass</code>, <code>removeClass</code> und <code>hasClass</code>. Deren Sinn erklärt sich von selbst, es ist ein komfortableres Interface zur <code>className</code>-Eigenschaft. Darüber hinaus bekommt jedes Element die Methode <code>getNodesByXPath</code>, mit der sich alle Kindknoten mithilfe einer XPath-Abfrage durchsuchen lassen, und die Methode <code>contains</code>, die zurückgibt, ob ein anderes Element in dem fraglichen enthalten ist.</p>
+<p>Schließlich werden Elementknoten erweitert um die Methoden <code>toggleClass</code>, <code>addClass</code>, <code>removeClass</code> und <code>hasClass</code>. Deren Sinn erklärt sich von selbst, es ist ein komfortableres Interface zur <code>className</code>-Eigenschaft. Darüber hinaus bekommt jedes Element die Methoden <code>getElementByXPath</code> und <code>getElementsByXPath</code>, mit der sich die Kindknoten mithilfe einer XPath-Abfrage durchsuchen lassen.</p>
 
 
 <h3>Layer</h3>
@@ -213,7 +214,11 @@ F.postingsByCategory = {};
 <p>Das Ansprechen und Einfügen von Elementen sowie das Ändern ihres Inhaltes erfolgt über eine OOP-Abstraktion namens Layer. <code>F.Layer</code> ist ein Konstruktor, der z.B. so aufgerufen wird:</p>
 
 <pre>
-new SELFHTML.Forum.Layer( { id : "scriptInfo", tagName : "div", parent : document.getElementById("kopf-haupt") } ).html(html).show();
+new SELFHTML.Forum.Layer({
+    id : "scriptInfo",
+    tagName : "div",
+    parent : document.getElementById("kopf-haupt")
+}).html(html).show();
 </pre>
 
 <p>Dies erzeugt ein Element vom angegebenen Typ mit der angegebenen ID und hängt es als angegebenen Eltern-Element ins Dokument ein. Wenn schon ein Layer mit der ID angelegt wurde, gibt der Konstruktor das entsprechende Layer-Objekt zurück, anstatt ein zweites gleiches Element zu erzeugen. Der obige Befehl kann also gefahrlos mehrfach aufgerufen werden.</p>
