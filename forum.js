@@ -8,9 +8,9 @@ Lizenz: MIT License
 
 /* #################################################################################### */
 
-/* Helferfunktionen */
+/* Prototypische Erweiterungen */
 
-/* Core-Object-Prototypen */
+/* Statisches forEach für Objects (Hashes) */
 
 if (!Object.forEach) {
 	Object.forEach = function f_Object_forEach (object, func) {
@@ -22,6 +22,8 @@ if (!Object.forEach) {
 	};
 }
 
+/* forEach für Listen-Typen */
+
 (function () {
 	var forEach = function f_Enumerable_forEach (func) {
 		if (typeof func != "function") throw new TypeError();
@@ -30,31 +32,24 @@ if (!Object.forEach) {
 			func.call(this, this[i], i);
 		}
 	};
+	
 	if (!Array.prototype.forEach) {
 		Array.prototype.forEach = forEach;
 	}
+	
 	if (!NodeList.prototype.forEach) {
 		NodeList.prototype.forEach = forEach;
 	}
-})();
-
-if (!Array.prototype.filter) {
-	Array.prototype.filter = function f_Array_prototype_filter (fun) {
-		var len = this.length;
-		if (typeof fun != "function") throw new TypeError();
-		var res = new Array();
-		var thisp = arguments[1];
-		for (var i = 0; i < len; i++) {
-			if (i in this) {
-				var val = this[i];
-				if (fun.call(thisp, val, i, this)) {
-					res.push(val);
-				}
-			}
+	
+	/* Opera 10 Fix */
+	if (document.querySelectorAll) {
+		var nodeList = document.querySelectorAll(":root");
+		if (!nodeList.forEach) {
+			/* Try to augment the StaticNodeList prototype */
+			nodeList.constructor.prototype.forEach = forEach;
 		}
-		return res;
-	};
-}
+	}
+})();
 
 Array.convert = function (obj) {
 	return Array.prototype.slice.apply(obj);
@@ -74,37 +69,25 @@ String.prototype.escapeHTML = function f_String_prototype_escapeHTML () {
 	return this.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&lt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 };
 
-/* DOM-Interface-Prototypen */
+/* HTML-Elemente */
 
 Element.prototype.getElementByXPath = function f_Element_prototype_getElementByXPath (xpathExpression) {
-	return document.evaluate(xpathExpression, this, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+	try {
+		return document.evaluate(xpathExpression, this, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+	} catch (e) {
+		console.log(xpathExpression, e);
+	}
 };
 
 Element.prototype.getElementsByXPath = function f_Element_prototype_getElementsByXPath (xpathExpression) {
-	return document.evaluate(xpathExpression, this, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
-};
-
-XPathResult.prototype.forEach = function f_XPathResult_prototype_forEach (func) {
-	var node,
-		i = 0,
-		iterator = this.resultType == XPathResult.ORDERED_NODE_ITERATOR_TYPE ? 'iterateNext' : 'snapshotItem';
-	while (node = this[iterator](i++)) {
-		func(node);
+	try {
+		return document.evaluate(xpathExpression, this, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+	} catch (e) {
+		console.log(xpathExpression, e);
 	}
 };
 
-XPathResult.prototype.toArray = function f_XPathResult_prototype_toArray () {
-	var arr = [],
-		node,
-		i = 0,
-		iterator = this.resultType == XPathResult.ORDERED_NODE_ITERATOR_TYPE ? 'iterateNext' : 'snapshotItem';
-	while (node = this[iterator](i++)) {
-		arr.push(node);
-	}
-	return arr;
-};
-
-/* Klassen */
+/* Klassen-Helferfunktionen */
 
 (function () {
 	var regexpCache = {};
@@ -130,6 +113,28 @@ XPathResult.prototype.toArray = function f_XPathResult_prototype_toArray () {
 	delete p;
 })();
 
+/* XPath-Ergebnisse */
+
+XPathResult.prototype.forEach = function f_XPathResult_prototype_forEach (func) {
+	var node,
+		i = 0,
+		iterator = this.resultType == XPathResult.ORDERED_NODE_ITERATOR_TYPE ? 'iterateNext' : 'snapshotItem';
+	while (node = this[iterator](i++)) {
+		func(node);
+	}
+};
+
+XPathResult.prototype.toArray = function f_XPathResult_prototype_toArray () {
+	var arr = [],
+		node,
+		i = 0,
+		iterator = this.resultType == XPathResult.ORDERED_NODE_ITERATOR_TYPE ? 'iterateNext' : 'snapshotItem';
+	while (node = this[iterator](i++)) {
+		arr.push(node);
+	}
+	return arr;
+};
+
 /* #################################################################################### */
 
 /* SELFHTML- und Forums-Namensraum */
@@ -143,7 +148,6 @@ SELFHTML.Forum = {};
 /* Browser-Unterstützung */
 
 SELFHTML.Forum.Support = {
-	domXPath : !!document.evaluate,
 	querySelectorAll : !!(document.querySelector && document.querySelectorAll),
 	getElementsByClassName : !!document.getElementsByClassName
 };
@@ -158,66 +162,7 @@ SELFHTML.Forum.getThreadStart = function SELFHTML_Forum_getThreadStart (li) {
 
 /* #################################################################################### */
 
-/* Debugging-Namensraum */
-
-SELFHTML.Forum.Debug = {};
-
-/* Helferfunktionen für XPath-Benchmarks */
-
-SELFHTML.Forum.Debug.xpathBenchmark = function f_SELFHTML_Forum_Debug (xpathExpression, contextNode, iterations) {
-	contextNode = contextNode || document.documentElement;
-	iterations = iterations || 500;
-	console.log("benchmarking", xpathExpression, "at", contextNode);
-	var start = new Date().getTime();
-	try {
-		for (var i = 0; i < iterations; i++) {
-			var result = document.evaluate(xpathExpression, contextNode, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-		}
-	} catch (e) {
-		console.debug(e);
-		return;
-	}
-	var end = new Date().getTime();
-	console.log(xpathExpression, "found", result.snapshotLength, "nodes in ", (end - start), "ms");
-	return result;
-};
-
-Function.prototype.benchmark = function f_Function_prototype_benchmark (iterations) {
-	var functionNameMatches = this.toString().match(/^function\s+([^(]+)/),
-		functionName = functionNameMatches ? functionNameMatches[1] : 'unnamed';
-	console.log("benchmarking " + functionName);
-	iterations = iterations || 1000;
-	var start = new Date().getTime();
-	for (var i = 0; i < iterations; i++) {
-		var result = this();
-	}
-	var end = new Date().getTime();
-	console.log(iterations, "iterations took", (end - start), "ms");
-	return result;
-};
-
-SELFHTML.Forum.Debug.benchmarkQuery = function () {
-	var F = SELFHTML.Forum,
-		it = 200;
-	/*
-	if (F.Support.getElementsByClassName) {
-		(function getElementsByClassName () {
-			//F.threadList.getElementsByClassName('author');
-			return false;
-		}).benchmark(it);
-	}
-	*/
-	if (F.Support.querySelectorAll) {
-		(function querySelectorAll () {
-			//F.threadList.querySelectorAll(".author");
-			document.querySelectorAll("li.own-posting li:not(.visited)");
-		}).benchmark(it);
-	}
-	(function getElementsByXPath () {
-		//F.threadList.getElementsByXPath("descendant::span[@class = 'author']");
-		F.threadList.getElementsByXPath("descendant::li[contains(@class, 'own-posting')]/child::ul/child::li[not(contains(@class, 'visited'))]")
-	}).benchmark(it);
-}
+document.write("<script src='debug.js'></script>");
 
 /* #################################################################################### */
 
@@ -289,7 +234,7 @@ SELFHTML.Forum.ThreadListCache.init = function f_SELFHTML_Forum_ThreadListCache_
 	} else if (Su.querySelectorAll) {
 		//console.log('ThreadListCache: querySelectorAll');
 		authorSpans = threadList.querySelectorAll(".author");
-	} else if (Su.domXPath) {
+	} else {
 		//console.log('ThreadListCache: getElementsByXPath');
 		authorSpans = threadList.getElementsByXPath("descendant::span[@class = 'author']").toArray();
 	}
@@ -645,14 +590,14 @@ SELFHTML.Forum.FollowupNotice.init = function f_SELFHTML_Forum_FollowupNotice_in
 		Su = F.Support,
 		threadList = F.threadList,
 		newFollowupPostings;
-
+	
 	if (Su.querySelectorAll) {
 		//console.log('FollowupNotice newFollowupPostings: querySelectorAll');
 		newFollowupPostings = threadList.querySelectorAll("li.own-posting > ul > li:not(.visited) > .posting");
 	} else {
 		//console.log('FollowupNotice newFollowupPostings: getElementsByXPath');
 		newFollowupPostings = threadList
-			.getElementsByXPath("descendant::li[contains(@class, 'own-posting')]/child::ul/child::li[not(contains(@class, 'visited'))]/(child::span | child::span/child::span)[contains(@class, 'posting')]")
+			.getElementsByXPath("descendant::li[contains(@class, 'own-posting')]/ul/li[not(contains(@class, 'visited'))]")
 			.toArray();
 	}
 	
@@ -664,21 +609,23 @@ SELFHTML.Forum.FollowupNotice.init = function f_SELFHTML_Forum_FollowupNotice_in
 		targetElement = document.getElementById(targetId);
 	if (!targetElement) return;
 	
-	var start = new Date().getTime(),
-		newFollowups = [];
+	var newFollowups = [];
 	
+	console.log(newFollowupPostings + " " + newFollowupPostings.forEach);
 	newFollowupPostings.forEach(function f_newFollowupNodes_forEach (posting) {
 		
-		var aElement, author;
+		var aElement, author, postingSpan;
 		
 		if (Su.querySelectorAll) {
 			//console.log('FollowupNotice newFollowup: querySelectorAll');
+			postingSpan = posting;
 			aElement = posting.querySelector("span.subject a");
 			author = posting.querySelector("span.author");
 		} else {
 			//console.log('FollowupNotice newFollowup: getElementByXPath');
-			aElement = posting.getElementByXPath("child::span[contains(@class, 'subject')]/child::a");
-			author = posting.getElementByXPath("child::span[contains(@class, 'author')]");
+			postingSpan = posting.getElementByXPath("(span | span/span)[contains(@class, 'posting')]");
+			aElement = postingSpan.getElementByXPath("span[contains(@class, 'subject')]/a");
+			author = postingSpan.getElementByXPath("span[contains(@class, 'author')]");
 		}
 		
 		/* Link hat keine visited-Klasse, ist aber in der Browser-History als besucht markiert */
@@ -693,7 +640,7 @@ SELFHTML.Forum.FollowupNotice.init = function f_SELFHTML_Forum_FollowupNotice_in
 		});
 		
 	});
-
+	
 	/* Erzeuge Meldungsbox (div-Element mit h2-Element) */
 	var layer = new F.Layer( { id : "followup-notice", tagName : "div", parent : targetElement } );
 
