@@ -611,7 +611,6 @@ SELFHTML.Forum.FollowupNotice.init = function f_SELFHTML_Forum_FollowupNotice_in
 	
 	var newFollowups = [];
 	
-	console.log(newFollowupPostings + " " + newFollowupPostings.forEach);
 	newFollowupPostings.forEach(function f_newFollowupNodes_forEach (posting) {
 		
 		var aElement, author, postingSpan;
