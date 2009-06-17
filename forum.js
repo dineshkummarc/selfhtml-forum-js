@@ -163,7 +163,7 @@ SELFHTML.Forum.getThreadStart = function SELFHTML_Forum_getThreadStart (li) {
 /* #################################################################################### */
 
 if (location.hostname != "forum.de.selfhtml.org") {
-	document.write("<script src='http://molily.de/selfhtml-forum-js/debug.js'></script>");
+	document.write("<script src='debug.js'></script>");
 }
 
 /* #################################################################################### */
