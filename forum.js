@@ -51,11 +51,11 @@ if (!Object.forEach) {
 	}
 })();
 
-Array.convert = function (obj) {
+Array.convert = function f_Array_convert (obj) {
 	return Array.prototype.slice.apply(obj);
 };
 
-Function.prototype.curry = function () {
+Function.prototype.curry = function f_Function_prototype_curry () {
 	if (arguments.length === 0) {
 		return this;
 	}
@@ -162,7 +162,9 @@ SELFHTML.Forum.getThreadStart = function SELFHTML_Forum_getThreadStart (li) {
 
 /* #################################################################################### */
 
-document.write("<script src='debug.js'></script>");
+if (location.hostname != "forum.de.selfhtml.org") {
+	document.write("<script src='http://molily.de/selfhtml-forum-js/debug.js'></script>");
+}
 
 /* #################################################################################### */
 
