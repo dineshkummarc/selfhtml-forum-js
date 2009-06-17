@@ -9,66 +9,66 @@ SELFHTML.Forum.Debug = {};
  * in the specified array.  This function changes the
  * specified array by sorting its contents. */
 function Stats(data) {
-    this.count = data.length;
+	this.count = data.length;
 
-    /* Sort the data so that all seemingly
-     * insignificant values such as 0.000000003 will
-     * be at the beginning of the array and their
-     * contribution to the mean and variance of the
-     * data will not be lost because of the precision
-     * of the CPU. */
-    data.sort(ascend);
+	/* Sort the data so that all seemingly
+	 * insignificant values such as 0.000000003 will
+	 * be at the beginning of the array and their
+	 * contribution to the mean and variance of the
+	 * data will not be lost because of the precision
+	 * of the CPU. */
+	data.sort(ascend);
 
-    /* Since the data is now sorted, the minimum value
-     * is at the beginning of the array, the median
-     * value is in the middle of the array, and the
-     * maximum value is at the end of the array. */
-    this.min = data[0];
-    var middle = Math.floor(data.length / 2);
-    if ((data.length % 2) != 0) {
-        this.median = data[middle];
-    }
-    else {
-        this.median = (data[middle - 1] + data[middle]) / 2;
-    }
-    this.max = data[data.length - 1];
+	/* Since the data is now sorted, the minimum value
+	 * is at the beginning of the array, the median
+	 * value is in the middle of the array, and the
+	 * maximum value is at the end of the array. */
+	this.min = data[0];
+	var middle = Math.floor(data.length / 2);
+	if ((data.length % 2) != 0) {
+		this.median = data[middle];
+	}
+	else {
+		this.median = (data[middle - 1] + data[middle]) / 2;
+	}
+	this.max = data[data.length - 1];
 
-    /* Compute the mean and variance using a
-     * numerically stable algorithm. */
-    var sqsum = 0;
-    this.mean = data[0];
-    for (var i = 1;  i < data.length;  ++i) {
-        var x = data[i];
-        var delta = x - this.mean;
-        var sweep = i + 1.0;
-        this.mean += delta / sweep;
-        sqsum += delta * delta * (i / sweep);
-    }
-    this.sum = this.mean * this.count;
-    this.variance = sqsum / this.count;
-    this.sdev = Math.sqrt(this.variance);
+	/* Compute the mean and variance using a
+	 * numerically stable algorithm. */
+	var sqsum = 0;
+	this.mean = data[0];
+	for (var i = 1;  i < data.length;  ++i) {
+		var x = data[i];
+		var delta = x - this.mean;
+		var sweep = i + 1.0;
+		this.mean += delta / sweep;
+		sqsum += delta * delta * (i / sweep);
+	}
+	this.sum = this.mean * this.count;
+	this.variance = sqsum / this.count;
+	this.sdev = Math.sqrt(this.variance);
 }
 /** Returns a string that shows all the properties and
  * their values for this Stats object. */
 Stats.prototype.toString = function() {
-    var s = 'Stats';
-    for (var attr in this) {
-        if (typeof(this[attr]) != 'function') {
-            s += '  ' + attr + ' ' + this[attr];
-        }
-    }
-    return s;
+	var s = 'Stats';
+	for (var attr in this) {
+		if (typeof(this[attr]) != 'function') {
+			s += '  ' + attr + ' ' + this[attr];
+		}
+	}
+	return s;
 }
 
 
 /** Compares two objects using
  * built-in JavaScript operators. */
 function ascend(a, b) {
-    if (a < b)
-        return -1;
-    else if (a > b)
-        return 1;
-    return 0;
+	if (a < b)
+		return -1;
+	else if (a > b)
+		return 1;
+	return 0;
 }
 
 if (!window.console && window.opera && opera.postError) {
@@ -115,10 +115,47 @@ Function.prototype.benchmark = function f_Function_prototype_benchmark (iteratio
 
 };
 
+Function.prototype.benchmark2 = function f_Function_prototype_benchmark2 (time) {
+	
+	var functionNameMatches = this.toString().match(/^function\s+([^(]+)/),
+		functionName = functionNameMatches ? functionNameMatches[1] : 'unnamed';
+	console.log("benchmarking " + functionName);
+	
+	time = time || 5000;
+	
+	var payloadF = this,
+		iterations = 0,
+		startTime = new Date().getTime(),
+		interval = setInterval(intervalF, 0);
+	
+	setTimeout(end, time);
+	
+	function intervalF () {
+		iterations++;
+		payloadF();
+	}
+	
+	function end () {
+		clearInterval(interval);
+		
+		var endTime = new Date().getTime(),
+			totalTime = endTime - startTime;
+		
+		console.log(
+			"target time: " + time + ", total time: " + totalTime + "\n" +
+			"iterations: " + iterations + ", " + (iterations / time) + " ms per call"
+		);
+	}
+
+};
+
+//SELFHTML.Forum.Debug.xpathBenchmark("ancestor::li[contains(@class, 'thread-start')]/descendant::a[contains(@class, 'title') and not(contains(@class, 'visited'))]", document.getElementById('m1245122'), 50);
+
 SELFHTML.Forum.Debug.xpathBenchmark = function f_SELFHTML_Forum_Debug (xpathExpression, contextNode, iterations) {
 	contextNode = contextNode || document.body;
 	iterations = iterations || 500;
 	//console.log("benchmarking\n" + xpathExpression + "\nat", contextNode);
+	
 	var start = new Date().getTime();
 	try {
 		for (var i = 0; i < iterations; i++) {
@@ -129,13 +166,13 @@ SELFHTML.Forum.Debug.xpathBenchmark = function f_SELFHTML_Forum_Debug (xpathExpr
 		return;
 	}
 	var end = new Date().getTime();
+	
 	var message = "found " + result.snapshotLength + " nodes in " + (end - start) + "ms, average " + ((end - start) / iterations) + "ms";
 	for (var i = 0, length = result.snapshotLength; i < length; i++) {
 		console.log(result.snapshotItem(i));
 	}
-	// console.log(message);
-	// return result;
 	return message;
+	
 };
 
 SELFHTML.Forum.Debug.benchmarkQuery = function () {

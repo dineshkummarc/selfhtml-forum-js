@@ -174,15 +174,15 @@ SELFHTML.Forum.Modules = {};
 
 SELFHTML.Forum.Modules.queue = [];
 
-SELFHTML.Forum.Modules.add = function f_SELFHTML_Forum_Modules_add (documentType, module) {
+SELFHTML.Forum.Modules.add = function f_Modules_add (documentType, module) {
 	SELFHTML.Forum.Modules.queue.push({
 		documentType : documentType,
 		module : module
 	});
 };
 
-SELFHTML.Forum.Modules.init = function f_SELFHTML_Forum_Modules_init () {
-	SELFHTML.Forum.Modules.queue.forEach(function f_SELFHTML_Forum_Modules_queue_forEach (obj) {
+SELFHTML.Forum.Modules.init = function f_Modules_init () {
+	SELFHTML.Forum.Modules.queue.forEach(function f_Modules_queue_forEach (obj) {
 		if (document.body.id == "selfforum-" + obj.documentType || obj.documentType == "all") {
 			obj.module.init();
 		}
@@ -195,7 +195,7 @@ document.addEventListener("DOMContentLoaded", SELFHTML.Forum.Modules.init, false
 
 /* Globale Initialisierung */
 
-SELFHTML.Forum.init = function f_SELFHTML_Forum_Init () {
+SELFHTML.Forum.init = function f_Init () {
 	SELFHTML.Forum.ready = true;
 };
 
@@ -207,7 +207,7 @@ SELFHTML.Forum.Modules.add("all", SELFHTML.Forum);
 
 SELFHTML.Forum.Hauptseite = {};
 
-SELFHTML.Forum.Hauptseite.init = function f_SELFHTML_Forum_Hauptseite_init () {
+SELFHTML.Forum.Hauptseite.init = function f_Hauptseite_init () {
 	SELFHTML.Forum.threadList = document.getElementById("root");
 };
 
@@ -219,7 +219,7 @@ SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Hauptseite);
 
 SELFHTML.Forum.ThreadListCache = {};
 
-SELFHTML.Forum.ThreadListCache.init = function f_SELFHTML_Forum_ThreadListCache_init () {
+SELFHTML.Forum.ThreadListCache.init = function f_ThreadListCache_init () {
 
 	var F = SELFHTML.Forum,
 		Su = F.Support,
@@ -287,7 +287,7 @@ SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.ThreadListCache);
 
 SELFHTML.Forum.ContextMenu = {};
 
-SELFHTML.Forum.ContextMenu.init = function f_SELFHTML_Forum_ContextMenu_init () {
+SELFHTML.Forum.ContextMenu.init = function f_ContextMenu_init () {
 
 	var F = SELFHTML.Forum, M = F.ContextMenu;
 	M.target = document.getElementById("contextMenuTitle");
@@ -300,7 +300,7 @@ SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.ContextMenu);
 
 SELFHTML.Forum.ContextMenu.visible = false;
 
-SELFHTML.Forum.ContextMenu.getLinks = function f_SELFHTML_Forum_ContextMenu_getLinks (target, linkType) {
+SELFHTML.Forum.ContextMenu.getLinks = function f_ContextMenu_getLinks (target, linkType) {
 	
 	var F = SELFHTML.Forum, M = F.ContextMenu, C = F.Config, Fi = F.Filter, S = F.Statistics,
 		links = {};
@@ -346,7 +346,7 @@ SELFHTML.Forum.ContextMenu.getLinks = function f_SELFHTML_Forum_ContextMenu_getL
 	return links;
 };
 
-SELFHTML.Forum.ContextMenu.toggle = function f_SELFHTML_Forum_ContextMenu_toggle (e) {
+SELFHTML.Forum.ContextMenu.toggle = function f_ContextMenu_toggle (e) {
 
 	var M = SELFHTML.Forum.ContextMenu,
 		target = e.target,
@@ -367,7 +367,7 @@ SELFHTML.Forum.ContextMenu.toggle = function f_SELFHTML_Forum_ContextMenu_toggle
 	}
 };
 
-SELFHTML.Forum.ContextMenu.show = function f_SELFHTML_Forum_ContextMenu_show (target, links) {
+SELFHTML.Forum.ContextMenu.show = function f_ContextMenu_show (target, links) {
 	var F = SELFHTML.Forum, M = F.ContextMenu;
 	
 	if (M.target) {
@@ -397,7 +397,7 @@ SELFHTML.Forum.ContextMenu.show = function f_SELFHTML_Forum_ContextMenu_show (ta
 	M.target = target;
 };
 
-SELFHTML.Forum.ContextMenu.hide = function f_SELFHTML_Forum_ContextMenu_hide () {
+SELFHTML.Forum.ContextMenu.hide = function f_ContextMenu_hide () {
 	var F = SELFHTML.Forum, M = F.ContextMenu;
 	if (M.target) {
 		M.target.removeAttribute("id");
@@ -405,7 +405,7 @@ SELFHTML.Forum.ContextMenu.hide = function f_SELFHTML_Forum_ContextMenu_hide () 
 	new F.Layer( { id : "contextMenu" } ).hide();
 };
 
-SELFHTML.Forum.ContextMenu.threadListMouseOver = function f_SELFHTML_Forum_ContextMenu_threadListMouseOver (e) {
+SELFHTML.Forum.ContextMenu.threadListMouseOver = function f_ContextMenu_threadListMouseOver (e) {
 	var target = e.target;
 	if (!target.hasClass("javascript-button") && (target.hasClass("author") || target.hasClass("category") || target.hasClass("cathigh"))) {
 		target.addClass("javascript-button");
@@ -416,7 +416,7 @@ SELFHTML.Forum.ContextMenu.threadListMouseOver = function f_SELFHTML_Forum_Conte
 
 /* Layer-Abstraktion */
 
-SELFHTML.Forum.Layer = function f_SELFHTML_Forum_Layer (options) {
+SELFHTML.Forum.Layer = function f_Layer_constructor (options) {
 	if (!options || !options.id) {
 		throw new TypeError;
 	}
@@ -468,11 +468,11 @@ SELFHTML.Forum.Layer.prototype = {
 
 SELFHTML.Forum.Info = {};
 
-SELFHTML.Forum.Info.show = function f_SELFHTML_Forum_Info_show (html) {
+SELFHTML.Forum.Info.show = function f_Info_show (html) {
 	new SELFHTML.Forum.Layer( { id : "scriptInfo", tagName : "div", parent : document.getElementById("kopf-haupt") } ).html(html).show();
 };
 
-SELFHTML.Forum.Info.hide = function f_SELFHTML_Forum_Info_hide (html) {
+SELFHTML.Forum.Info.hide = function f_Info_hide (html) {
 	new SELFHTML.Forum.Layer( { id : "scriptInfo" } ).hide();
 };
 
@@ -482,7 +482,7 @@ SELFHTML.Forum.Info.hide = function f_SELFHTML_Forum_Info_hide (html) {
 
 SELFHTML.Forum.Filter = {};
 
-SELFHTML.Forum.Filter.init = function f_SELFHTML_Forum_Filter_init () {
+SELFHTML.Forum.Filter.init = function f_Filter_init () {
 	var Fi = SELFHTML.Forum.Filter;
 	
 	Fi.active = false;
@@ -494,7 +494,7 @@ SELFHTML.Forum.Filter.init = function f_SELFHTML_Forum_Filter_init () {
 
 SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Filter);
 
-SELFHTML.Forum.Filter.initCategoryFilter = function f_SELFHTML_Forum_Filter_initCategoryFilter () {
+SELFHTML.Forum.Filter.initCategoryFilter = function f_Filter_initCategoryFilter () {
 	var F = SELFHTML.Forum, Fi = F.Filter,
 		form = document.getElementById("themenfilter").getElementsByTagName("form")[0];
 	
@@ -511,7 +511,7 @@ SELFHTML.Forum.Filter.initCategoryFilter = function f_SELFHTML_Forum_Filter_init
 	}, false);
 };
 
-SELFHTML.Forum.Filter.filterByAuthor = function f_SELFHTML_Forum_Filter_filterByAuthor (authorName) {
+SELFHTML.Forum.Filter.filterByAuthor = function f_Filter_filterByAuthor (authorName) {
 	var F = SELFHTML.Forum, Fi = F.Filter;
 	
 	Fi.remove();
@@ -538,7 +538,7 @@ SELFHTML.Forum.Filter.filterByAuthor = function f_SELFHTML_Forum_Filter_filterBy
 	Fi.active = true;
 };
 
-SELFHTML.Forum.Filter.filterByCategory = function f_SELFHTML_Forum_Filter_filterByCategory (categoryName) {
+SELFHTML.Forum.Filter.filterByCategory = function f_Filter_filterByCategory (categoryName) {
 	var F = SELFHTML.Forum, Fi = F.Filter;
 	
 	Fi.remove();
@@ -561,7 +561,7 @@ SELFHTML.Forum.Filter.filterByCategory = function f_SELFHTML_Forum_Filter_filter
 	Fi.active = true;
 };
 
-SELFHTML.Forum.Filter.remove = function f_SELFHTML_Forum_Filter_remove () {
+SELFHTML.Forum.Filter.remove = function f_Filter_remove () {
 	var F = SELFHTML.Forum, Fi = F.Filter;
 	
 	if (!Fi.active) return;
@@ -586,7 +586,7 @@ SELFHTML.Forum.Filter.remove = function f_SELFHTML_Forum_Filter_remove () {
 
 SELFHTML.Forum.FollowupNotice = {};
 
-SELFHTML.Forum.FollowupNotice.init = function f_SELFHTML_Forum_FollowupNotice_init () {
+SELFHTML.Forum.FollowupNotice.init = function f_FollowupNotice_init () {
 	
 	var F = SELFHTML.Forum,
 		Su = F.Support,
@@ -676,7 +676,7 @@ SELFHTML.Forum.Config.directives = {
 	"SortThreads" : { parameter : "sortthreads", type : "single" }
 };
 
-SELFHTML.Forum.Config.init = function f_SELFHTML_Forum_Config_init () {
+SELFHTML.Forum.Config.init = function f_Config_init () {
 	var F = SELFHTML.Forum, C = F.Config;
 
 	Object.forEach(C.directives, function (directive, obj) {
@@ -694,7 +694,7 @@ SELFHTML.Forum.Config.init = function f_SELFHTML_Forum_Config_init () {
 
 SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Config);
 
-SELFHTML.Forum.Config.setValue = function f_SELFHTML_Forum_Config_setValue (directive, value) {
+SELFHTML.Forum.Config.setValue = function f_Config_setValue (directive, value) {
 	var F = SELFHTML.Forum, C = F.Config, obj = C.directives[directive];
 	if (!obj) return;
 	var uri  = userconf_uri + "?a=setvalue&directive=" + directive + "&" + obj.parameter + "=" + encodeURIComponent(value) +
@@ -702,7 +702,7 @@ SELFHTML.Forum.Config.setValue = function f_SELFHTML_Forum_Config_setValue (dire
 	xmlhttp_get_contents(xmlhttp, uri, null, null);
 };
 
-SELFHTML.Forum.Config.removeValue = function f_SELFHTML_Forum_Config_removeValue (directive, value) {
+SELFHTML.Forum.Config.removeValue = function f_Config_removeValue (directive, value) {
 	var F = SELFHTML.Forum, C = F.Config, obj = C.directives[directive];
 	if (!obj) return;
 	var uri  = userconf_uri + "?a=removevalue&directive=" + directive + "&" + obj.parameter + "=" + encodeURIComponent(value) +
@@ -710,7 +710,7 @@ SELFHTML.Forum.Config.removeValue = function f_SELFHTML_Forum_Config_removeValue
 	xmlhttp_get_contents(xmlhttp, uri, null, null);
 };
 
-SELFHTML.Forum.Config.confirmReload = function f_SELFHTML_Forum_Config_confirmReload () {
+SELFHTML.Forum.Config.confirmReload = function f_Config_confirmReload () {
 	var reloadDialog = "Die Einstellung wurde auf dem Server gespeichert. Soll die Forumshauptseite jetzt neu geladen werden?";
 	if (window.confirm(reloadDialog)) {
 		location.reload();
@@ -723,7 +723,7 @@ SELFHTML.Forum.Config.confirmReload = function f_SELFHTML_Forum_Config_confirmRe
 
 SELFHTML.Forum.Statistics = {};
 
-SELFHTML.Forum.Statistics.init = function f_SELFHTML_Forum_Statistics_init (type) {
+SELFHTML.Forum.Statistics.init = function f_Statistics_init (type) {
 	if (typeof type != "string") {
 		arguments.callee("author");
 		arguments.callee("category");
@@ -735,14 +735,14 @@ SELFHTML.Forum.Statistics.init = function f_SELFHTML_Forum_Statistics_init (type
 		typeName,
 		ranking = [];
 
-	Object.forEach(postingsByType, function f_ranking_push_postingNumber (typeName, postings) {
+	Object.forEach(postingsByType, function f_Statistics_ranking_push (typeName, postings) {
 		ranking.push( {
 			"typeName" : typeName,
 			"postingNumber" : postings.length
 		} );
 	});
 
-	ranking.sort(function f_ranking_sort (a, b) {
+	ranking.sort(function f_Statistics_ranking_sort (a, b) {
 		return a.postingNumber > b.postingNumber ? -1 : 1;
 	});
 
@@ -754,7 +754,7 @@ SELFHTML.Forum.Statistics.init = function f_SELFHTML_Forum_Statistics_init (type
 
 	var html = "<p><a href='javascript:void(0)' class='hide'>Ausblenden</a></p>";
 	html += "<table><tbody>";
-	ranking.forEach(function f_ranking_append_html (obj) {
+	ranking.forEach(function f_Statistics_ranking_append (obj) {
 		html += "<tr><th><a href='javascript:void(0)'>" + obj.typeName.escapeHTML() + "</th><td>" + obj.postingNumber + "</td></tr>";
 	});
 	html += "</tbody></table>";
@@ -776,7 +776,7 @@ SELFHTML.Forum.Statistics.init = function f_SELFHTML_Forum_Statistics_init (type
 
 SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Statistics);
 
-SELFHTML.Forum.Statistics.show = function f_SELFHTML_Forum_Statistics_show (type) {
+SELFHTML.Forum.Statistics.show = function f_Statistics_show (type) {
 	var F = SELFHTML.Forum;
 	F.ContextMenu.hide();
 	var layer = new F.Layer( { id : type + "Statistics" } );
@@ -787,7 +787,7 @@ SELFHTML.Forum.Statistics.show = function f_SELFHTML_Forum_Statistics_show (type
 	layer.element.style.maxHeight = height + "px";
 };
 
-SELFHTML.Forum.Statistics.hide = function f_SELFHTML_Forum_Statistics_hide () {
+SELFHTML.Forum.Statistics.hide = function f_Statistics_hide () {
 	var F = SELFHTML.Forum;
 	new F.Layer( { id : "categoryStatistics" } ).hide();
 	new F.Layer( { id : "authorStatistics" } ).hide();
@@ -797,7 +797,7 @@ SELFHTML.Forum.Statistics.hide = function f_SELFHTML_Forum_Statistics_hide () {
 
 SELFHTML.Forum.Sorting = {};
 
-SELFHTML.Forum.Sorting.init = function f_SELFHTML_Forum_Sorting_init () {
+SELFHTML.Forum.Sorting.init = function f_Sorting_init () {
 	var sibling = document.getElementById("themenfilter");
 	if (!sibling) return;
 	var elem = document.createElement("div");
@@ -815,7 +815,7 @@ SELFHTML.Forum.Sorting.init = function f_SELFHTML_Forum_Sorting_init () {
 
 SELFHTML.Forum.Modules.add("hauptseite", SELFHTML.Forum.Sorting);
 
-SELFHTML.Forum.Sorting.change = function f_SELFHTML_Forum_Sorting_change (e) {
+SELFHTML.Forum.Sorting.change = function f_Sorting_change (e) {
 	var C = SELFHTML.Forum.Config,
 		target = e.target, targetName = target.nodeName.toLowerCase(),
 		value;
